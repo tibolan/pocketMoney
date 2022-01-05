@@ -1,0 +1,14 @@
+[
+  {
+    "name": "zadig",
+    "fee": 30,
+    "date": "2022-01-04",
+    "type": "RANG"
+  },
+  {
+    "name": "swann",
+    "fee": 30,
+    "date": "2022-01-04",
+    "type": "CUI"
+  }
+]
