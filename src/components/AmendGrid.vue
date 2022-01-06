@@ -196,8 +196,8 @@ export default {
 
 .amendGrid {
   display: grid;
-  grid-template-columns: repeat(7, calc(100vw / 7));
-  grid-template-rows: 40px repeat(6, calc(100vw / 7));
+  grid-template-columns: repeat(7, calc(98% / 7));
+  grid-template-rows: 40px repeat(6, calc(98vw / 7));
   max-width: 100%;
 }
 

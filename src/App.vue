@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <header id="nav">
+      <img src="/logo.png" alt="PocketMoney" width="80"/>
       <ul>
         <li>
           <router-link to="/user/zadig">Zadig</router-link>
@@ -80,10 +81,12 @@ html, body {
   background-color: #ffffff;
   color: var(--queen-blue);
   min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
@@ -113,9 +116,9 @@ ul, ol, li {
 }
 
 #nav {
-  padding: 10px 0px;
+  padding: 10px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -126,6 +129,7 @@ ul, ol, li {
   justify-content: space-evenly;
   padding: 0;
   margin: 0;
+  flex: 1;
 }
 
 
