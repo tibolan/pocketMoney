@@ -2,8 +2,16 @@ import axios from "axios";
 import Vue from 'vue'
 import Vuex from 'vuex'
 // import createPersistedState from 'vuex-persistedstate'
+switch (location.host) {
+    case 'tibolan.herokuapp.com': {
+        axios.defaults.baseURL = "https://pocketmoneyapi.herokuapp.com/"
+        break
+    }
+    default: {
+        axios.defaults.baseURL = "http://localhost:3000"
+    }
+}
 
-axios.defaults.baseURL = "http://localhost:3000"
 Vue.use(Vuex)
 
 /* eslint-disable no-new */
