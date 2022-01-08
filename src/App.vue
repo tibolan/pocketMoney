@@ -33,25 +33,22 @@
 
     <v-bottom-navigation>
       <v-btn
-          fab
-          dark
           class="lighten-5"
-          @click="goToUserPage('zadig')"
-      >Z
+          active-class="dark"
+          :to="{name: 'user', params: {user: 'zadig'}}"
+      >ZADIG
       </v-btn>
 
       <v-btn
-          fab
-          dark
           class="lighten-5"
-          @click="goToUserPage('swann')"
-      >S
+          active-class="dark"
+          :to="{name: 'user', params: {user: 'swann'}}"
+      >SWANN
       </v-btn>
 
 
       <template v-if="parentMode">
         <v-btn
-            fab
             color="success"
             class="lighten-2"
             @click="removeParentMode"
@@ -65,7 +62,6 @@
         >
           <template v-slot:activator="{ on, attrs }">
             <v-btn
-                fab
                 v-bind="attrs"
                 v-on="on"
                 color="red"
@@ -78,15 +74,15 @@
               Mode parent
             </v-card-title>
             <v-card-text>
-              <v-text-field
+              <v-otp-input
+                  length="4"
+                  type="password"
                   label="Code secret de la CIA"
                   id="CIA"
                   required
                   v-model="code"
-                  type="password"
-                  inputmode="numeric"
                   :error="codeError"
-              ></v-text-field>
+              ></v-otp-input>
             </v-card-text>
             <v-card-actions>
               <v-btn
@@ -123,14 +119,6 @@ export default {
     ...mapState(['parentMode'])
   },
   methods: {
-    goToUserPage (name) {
-      this.$router.push({
-        name: "user",
-        params: {
-          user: name
-        }
-      })
-    },
     askParentMode () {
       this.askParentModeActivated = true
     },

@@ -4,7 +4,6 @@
 
     <div style="text-align: center; margin: 10px 0">
       <input type="month" v-model="month">
-      <p>{{currentDay}}</p>
     </div>
     <v-sheet height="auto" v-if="currentUser">
       <v-calendar
@@ -229,6 +228,7 @@ export default {
       return dayjs(this.currentDay).format('DD MMMM YYYY')
     },
     amendsType () {
+      if (!this.referentials) return []
       return this.referentials.map((item) => {
         return {
           text: item.label,
