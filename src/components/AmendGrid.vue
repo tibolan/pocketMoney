@@ -146,13 +146,13 @@ export default {
     getAmendsByDate (date) {
       return this.amends.filter(amend => amend.date === date)
     },
-    getAmendsTotalByDate (date) {
-      let amends = this.getAmendsByDate(date)
-      let total = amends.reduce((acc, amend) => {
-        return acc + Number(amend.fee)
-      }, 0)
-      return this.toCurrency((100 - total) / 100)
-    },
+      getAmendsTotalByDate (date) {
+        let amends = this.getAmendsByDate(date)
+        let total = amends.reduce((acc, amend) => {
+          return acc + Number(amend.fee)
+        }, 0)
+        return this.toCurrency((100 - total) / 100)
+      },
     openDay (date) {
       this.currentDay = date
       this.$refs.dialog.showModal()
@@ -356,7 +356,7 @@ form .invalid {
 }
 
 .day-body-total.p100 {
-  background-color: #66FF6E;
+  background-color: #66ff6e;
   color: #666
 }
 

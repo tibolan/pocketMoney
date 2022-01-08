@@ -1,8 +1,8 @@
 <template>
-  <main :class="loading ? 'loading' : ''">
+  <section :class="loading ? 'loading' : ''">
     <h1><span>{{ name }}</span> <input type="month" v-model="date" max="2022-01" min="2021-12"></h1>
     <amend-grid :amends="currentAmends" :date="date"></amend-grid>
-  </main>
+  </section>
 </template>
 
 <script>

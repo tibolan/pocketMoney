@@ -1,154 +1,160 @@
 <template>
-  <div id="app">
-    <header id="nav">
-      <img src="/logo.png" alt="PocketMoney" width="80"/>
-      <ul>
-        <li>
-          <router-link to="/user/zadig">Zadig</router-link>
-        </li>
-        <li>
-          <router-link to="/user/swann">Swann</router-link>
-        </li>
-      </ul>
-    </header>
-    <router-view/>
-    <footer>
-      <p>Mode parent</p>
-      <form @submit.prevent.stop="onParentModeActivated" v-if="!parentMode" class="formInline">
-        <div>
-          <input type="password" v-model="code" id="code" placeholder="code" :class="codeError ? 'invalid' : ''" @focus="codeError = false">
-        </div>
-        <div>
-          <button class="btn cta" type="submit" :disabled="!code">Activer</button>
-        </div>
-      </form>
-      <form @submit.prevent.stop="onParentModeDeactivated" v-else>
-        <div>
-          <button class="btn cta" type="submit">Désactiver</button>
-        </div>
-      </form>
-    </footer>
-  </div>
+  <v-app>
+    <v-app-bar
+        app
+        dark
+        class="lighten-5"
+    >
+      <div class="d-flex align-center">
+        <v-btn
+            icon
+            to="/"
+        >
+          <v-img
+              alt="Vuetify Logo"
+              class="shrink mr-2"
+              contain
+              src="/logo.png"
+              transition="scale-transition"
+              width="40"
+          />
+        </v-btn>
+      </div>
+
+      <v-spacer></v-spacer>
+
+      <h1 class="text-h6">{{$route.params.user ? $route.params.user : "PocketMoney"}}</h1>
+
+    </v-app-bar>
+
+    <v-main>
+      <router-view/>
+    </v-main>
+
+    <v-bottom-navigation>
+      <v-btn
+          fab
+          dark
+          class="lighten-5"
+          @click="goToUserPage('zadig')"
+      >Z
+      </v-btn>
+
+      <v-btn
+          fab
+          dark
+          class="lighten-5"
+          @click="goToUserPage('swann')"
+      >S
+      </v-btn>
+
+
+      <template v-if="parentMode">
+        <v-btn
+            fab
+            color="success"
+            class="lighten-2"
+            @click="removeParentMode"
+        >OT
+        </v-btn>
+      </template>
+      <template v-else>
+        <v-dialog
+            v-model="askParentModeActivated"
+            max-width="500px"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+                fab
+                v-bind="attrs"
+                v-on="on"
+                color="red"
+                class="lighten-2"
+            >OT
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-title>
+              Mode parent
+            </v-card-title>
+            <v-card-text>
+              <v-text-field
+                  label="Code secret de la CIA"
+                  id="CIA"
+                  required
+                  v-model="code"
+                  type="password"
+                  inputmode="numeric"
+                  :error="codeError"
+              ></v-text-field>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn
+                  outlined
+                  @click="askParentModeActivated = false"
+              >Fermer</v-btn>
+              <v-spacer></v-spacer>
+              <v-btn
+                  dark
+                  @click="checkParentCode">Activer</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </template>
+
+
+    </v-bottom-navigation>
+  </v-app>
 </template>
+
 <script>
+
 import {mapState} from "vuex";
 
 export default {
-  name: 'app',
-  data () {
-    return {
-      code: null,
-      codeError: false
-    }
-  },
+  name: 'App',
+
+  data: () => ({
+    askParentModeActivated: false,
+    code: null,
+    codeError: false
+  }),
   computed: {
     ...mapState(['parentMode'])
   },
   methods: {
-    async onParentModeActivated () {
+    goToUserPage (name) {
+      this.$router.push({
+        name: "user",
+        params: {
+          user: name
+        }
+      })
+    },
+    askParentMode () {
+      this.askParentModeActivated = true
+    },
+    async checkParentCode () {
       let ok = await this.$store.dispatch('SET_PARENT_MODE', this.code)
-
+      this.code = null
       if (!ok) {
         this.codeError = true
       } else {
         this.codeError = false
+        this.askParentModeActivated = false
       }
-      this.code = null
     },
-    onParentModeDeactivated () {
-      this.$store.commit('SET_PARENT_MODE', false)
+    async removeParentMode () {
+      await this.$store.commit('SET_PARENT_MODE', false)
     }
   }
-}
+};
 </script>
-<style>
-
-html, body {
-  --red-salsa: #f94144;
-  --orange-red: #f3722c;
-  --yellow-orange-color-wheel: #f8961e;
-  --maize-crayola: #f9c74f;
-  --pistachio: #90be6d;
-  --zomp: #43aa8b;
-  --queen-blue: #577590;
-  --black: #333333;
-  --grey: #fff;
-  --white: #ffffff;
-
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-  background-color: #ffffff;
-  color: var(--queen-blue);
-  min-height: 100vh;
-  font-family: 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+<style lang="scss">
+root {
+  --baseColor: #FFCDD2
 }
-
-#app {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #577590;
-}
-
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%;
-}
-
-header, footer {
-  padding: 10px;
-}
-
-#app main {
-  flex: 1;
-
-}
-
-ul, ol, li {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-#nav {
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#nav ul {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-evenly;
-  padding: 0;
-  margin: 0;
-  flex: 1;
-}
-
-
-
-#nav li {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  margin: 0 5px 0;
-  color: var(--zomp)
-}
-
-
-#nav a {
-  font-weight: bold;
-  color: var(--queen-blue);
-}
-
-#nav a.router-link-exact-active {
-  color: var(--zomp)
+#CIA {
+  font-size: 24px;
 }
 </style>
