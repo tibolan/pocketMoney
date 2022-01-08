@@ -4,6 +4,7 @@
 
     <div style="text-align: center; margin: 10px 0">
       <input type="month" v-model="month">
+      <p>{{currentDay}}</p>
     </div>
     <v-sheet height="auto" v-if="currentUser">
       <v-calendar
@@ -244,7 +245,8 @@ export default {
       return R.label
     },
     showDayDetails (e) {
-      this.currentDay = e.day.date
+      console.log(e)
+      this.currentDay = e.event ? e.day.date : e.date
       this.showCurrentDayDetails = true
     },
     getEventColor (event) {
@@ -285,7 +287,6 @@ export default {
         comment: this.amendComment,
         fee: this.amendValue
       })
-      this.amendValue = null
       this.amendType = null
       this.amendComment = null
       this.showAmendDialog = false
@@ -310,8 +311,12 @@ export default {
       this.date = `${this.month}-01`
     },
     amendType () {
-      let amendType = this.referentials.find(amend => amend.type === this.amendType)
-      this.amendValue = amendType.fee
+      if (this.amendType) {
+        let amendType = this.referentials.find(amend => amend.type === this.amendType)
+        this.amendValue = amendType.fee
+      } else {
+        this.amendValue = null
+      }
     }
   }
 }
