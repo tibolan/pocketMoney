@@ -74,15 +74,16 @@
               Mode parent
             </v-card-title>
             <v-card-text>
-              <v-otp-input
+              <v-text-field
                   length="4"
                   type="password"
+                  inputmode="numeric"
                   label="Code secret de la CIA"
                   id="CIA"
                   required
                   v-model="code"
                   :error="codeError"
-              ></v-otp-input>
+              ></v-text-field>
             </v-card-text>
             <v-card-actions>
               <v-btn
