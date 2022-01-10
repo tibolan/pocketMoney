@@ -93,6 +93,7 @@
               <v-spacer></v-spacer>
               <v-btn
                   dark
+                  color="black"
                   @click="checkParentCode">Activer</v-btn>
             </v-card-actions>
           </v-card>

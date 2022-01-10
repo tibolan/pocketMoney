@@ -13,7 +13,7 @@ const store = new Vuex.Store({
     state: {
         referentials: null,
         currentUser: null,
-        parentMode: null
+        parentMode: false
     },
     mutations: {
         SET_REFERENTIAL (state, refs) {
@@ -49,6 +49,17 @@ const store = new Vuex.Store({
                 data: Object.assign({}, {user: context.state.currentUser.name}, payload),
                 url: `/fee/${context.state.currentUser.name}/`,
                 method: "post"
+            }
+            return axios(config)
+        },
+        async UPDATE_AMEND (context, amend) {
+            console.log("UPDATE_AMEND", amend)
+            let id = amend._id
+            delete amend._id
+            let config = {
+                data: Object.assign({}, amend),
+                url: `/fee/${context.state.currentUser.name}/${id}`,
+                method: "put"
             }
             return axios(config)
         },

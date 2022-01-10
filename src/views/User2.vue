@@ -1,9 +1,8 @@
 <template>
   <main :class="loading ? 'loading' : ''">
     <!--    <h1><span>{{ name }}</span> <input type="month" v-model="date" max="2022-01" min="2021-12"></h1>-->
-
     <div style="text-align: center; margin: 10px 0">
-      <input type="month" v-model="month">
+      <input type="month" v-model="month" min="2022-01" :max="month">
     </div>
     <v-sheet height="auto" v-if="currentUser">
       <v-calendar
@@ -40,13 +39,18 @@
                   <v-list-item-content>
                     <v-list-item-title>{{ getReasonLabelByType(amend.type) }} : {{ toCurrency(amend.fee / 100) }}
                     </v-list-item-title>
-                    <v-list-item-subtitle v-if="amend.comment">{{amend.comment}}</v-list-item-subtitle>
+                    <v-list-item-subtitle v-if="amend.comment">{{ amend.comment }}</v-list-item-subtitle>
                   </v-list-item-content>
 
                   <v-list-item-action v-if="parentMode">
-                    <v-btn icon @click="deleteAmend(amend)">
-                      <v-icon color="grey lighten-1">mdi-delete</v-icon>
-                    </v-btn>
+                    <v-flex>
+                      <v-btn icon @click="openAmendForm(amend)">
+                        <v-icon color="grey lighten-1">mdi-pencil</v-icon>
+                      </v-btn>
+                      <v-btn icon @click="deleteAmend(amend)">
+                        <v-icon color="grey lighten-1">mdi-delete</v-icon>
+                      </v-btn>
+                    </v-flex>
                   </v-list-item-action>
                 </v-list-item>
               </template>
@@ -65,15 +69,11 @@
                 Fermer
               </v-btn>
               <v-spacer></v-spacer>
-              <v-btn dark @click="showAmendDialog = true" v-if="parentMode">
-                Ajouter
-              </v-btn>
+              <v-btn dark color="black" @click="openAmendForm()" v-if="parentMode">Ajouter</v-btn>
             </template>
             <template v-else>
               <v-spacer></v-spacer>
-              <v-btn outlined @click="showCurrentDayDetails = false">
-                Fermer
-              </v-btn>
+              <v-btn outlined @click="showCurrentDayDetails = false">Fermer</v-btn>
               <v-spacer></v-spacer>
             </template>
           </v-card-actions>
@@ -81,11 +81,11 @@
       </v-dialog>
 
 
-      <v-dialog v-model="showAmendDialog">
+      <v-dialog v-model="showAmendDialog" @input="onAmendDialogToggle">
         <v-card>
-          <v-card-title>Ajouter une amende</v-card-title>
+          <v-card-title v-if="!editMode">Ajouter une amende</v-card-title>
+          <v-card-title v-else>Modifier une amende</v-card-title>
           <v-card-text>
-            <pre>{{ amendType }}</pre>
             <v-select
                 :items="amendsType"
                 label="Catégorie"
@@ -93,12 +93,27 @@
                 v-model="amendType"
             ></v-select>
             <v-text-field outlined v-model="amendComment" label="Motif de l'amende"></v-text-field>
-            <v-text-field outlined type="number" min="10" label="Montant en centimes"
+            <v-text-field outlined type="number" min="10" label="Montant en centimes" step="10"
                           v-model="amendValue"></v-text-field>
           </v-card-text>
           <v-card-actions class="align-center">
             <v-spacer></v-spacer>
-            <v-btn color="black" dark class="lighten-5" @click="addAmend" :disabled="!(amendType && amendValue)">Ajouter</v-btn>
+            <template v-if="editMode">
+              <template v-if="amendType && amendValue">
+                <v-btn color="black" dark @click="editAmend">Modifier</v-btn>
+              </template>
+              <template v-else>
+                <v-btn disabled>Modifier</v-btn>
+              </template>
+            </template>
+            <template v-else>
+              <template v-if="amendType && amendValue">
+                <v-btn color="black" dark @click="addAmend">Ajouter</v-btn>
+              </template>
+              <template v-else>
+                <v-btn disabled>Ajouter</v-btn>
+              </template>
+            </template>
             <v-spacer></v-spacer>
           </v-card-actions>
         </v-card>
@@ -116,52 +131,11 @@
 
 import {mapState} from "vuex";
 import dayjs from '../components/DateFR'
+import HSL2RGB from "../components/HSL2RGB";
 import toCurrency from "../components/toCurrency";
 
 const today = dayjs()
-const HSLToRGB = function (h, s, l) {
-  // Must be fractions of 1
-  s /= 100;
-  l /= 100;
 
-  let c = (1 - Math.abs(2 * l - 1)) * s,
-      x = c * (1 - Math.abs((h / 60) % 2 - 1)),
-      m = l - c / 2,
-      r = 0,
-      g = 0,
-      b = 0;
-
-  if (0 <= h && h < 60) {
-    r = c;
-    g = x;
-    b = 0;
-  } else if (60 <= h && h < 120) {
-    r = x;
-    g = c;
-    b = 0;
-  } else if (120 <= h && h < 180) {
-    r = 0;
-    g = c;
-    b = x;
-  } else if (180 <= h && h < 240) {
-    r = 0;
-    g = x;
-    b = c;
-  } else if (240 <= h && h < 300) {
-    r = x;
-    g = 0;
-    b = c;
-  } else if (300 <= h && h < 360) {
-    r = c;
-    g = 0;
-    b = x;
-  }
-  r = Math.round((r + m) * 255);
-  g = Math.round((g + m) * 255);
-  b = Math.round((b + m) * 255);
-
-  return "rgb(" + r + "," + g + "," + b + ")";
-}
 export default {
   name: "User",
   data () {
@@ -178,13 +152,15 @@ export default {
       events: [],
       amendType: null,
       amendComment: "",
-      amendValue: null
+      amendValue: null,
+      amendId: null,
+      editMode: false
     }
   },
   computed: {
     ...mapState(['referentials', 'currentUser', 'parentMode']),
-    reasons () {
-      return this.referentials.reasons
+    amends () {
+      return this.referentials.amends
     },
     name () {
       if (!this.currentUser) return ""
@@ -212,9 +188,12 @@ export default {
       const monthLength = dayjs(this.date).daysInMonth()
       for (let i = 1; i <= monthLength; i++) {
         let d = i < 10 ? `0${i}` : i
-        events.push(this.createEvent({
+        let evt = this.createEvent({
           date: `${this.month}-${d}`
-        }))
+        })
+        if (evt) {
+          events.push(evt)
+        }
       }
       return events;
     },
@@ -229,7 +208,7 @@ export default {
     },
     amendsType () {
       if (!this.referentials) return []
-      return this.referentials.map((item) => {
+      return this.referentials.amends.map((item) => {
         return {
           text: item.label,
           value: item.type,
@@ -241,18 +220,22 @@ export default {
   methods: {
     toCurrency,
     getReasonLabelByType (type) {
-      let R = this.referentials.find(reason => reason.type === type)
+      let R = this.referentials.amends.find(reason => reason.type === type)
       return R.label
     },
     showDayDetails (e) {
-      console.log(e)
-      this.currentDay = e.event ? e.day.date : e.date
+      let day = e.event ? e.day : e
+      console.log(day)
+      if (day.future) {
+        return false
+      }
+      this.currentDay = day.date
       this.showCurrentDayDetails = true
     },
     getEventColor (event) {
       let total = Math.max(event.total * 100, 0)
       if (total === 100) return "white"
-      let color = HSLToRGB(Math.floor(total * 123 / 100), 100, 50)
+      let color = HSL2RGB(Math.floor(total * 123 / 100), 100, 50)
       return color
     },
     getEvents (oDate) {
@@ -270,6 +253,9 @@ export default {
     },
     createEvent (amend) {
       let d = dayjs(amend.date)
+      if (d.isAfter(today)) {
+        return false
+      }
       let total = this.getAmendsTotalByDate(amend.date)
       return Object.assign({}, amend, {
         name: toCurrency(this.getAmendsTotalByDate(amend.date)),
@@ -280,6 +266,24 @@ export default {
         mydate: today.format("YYYY-MM-DD")
       })
     },
+    async openAmendForm (amend) {
+      if (amend) {
+        this.amendType = amend.type
+        this.amendComment = amend.comment
+        this.amendValue = amend.fee
+        this.amendId = amend._id
+        this.editMode = true
+      }
+      this.showAmendDialog = true
+    },
+    closeAmendForm () {
+      this.amendType = null
+      this.amendComment = null
+      this.amendValue = null
+      this.amendId = null
+      this.editMode = false
+      this.showAmendDialog = false
+    },
     async addAmend () {
       await this.$store.dispatch('CREATE_AMEND', {
         type: this.amendType,
@@ -287,15 +291,28 @@ export default {
         comment: this.amendComment,
         fee: this.amendValue
       })
-      this.amendType = null
-      this.amendComment = null
-      this.showAmendDialog = false
+      this.closeAmendForm()
       await this.$store.dispatch('REFRESH_USER')
 
     },
     async deleteAmend (amend) {
       await this.$store.dispatch('DELETE_AMEND', amend._id)
       await this.$store.dispatch('REFRESH_USER')
+    },
+    async editAmend () {
+      await this.$store.dispatch('UPDATE_AMEND', {
+        comment: this.amendComment,
+        fee: this.amendValue,
+        _id: this.amendId
+      })
+      this.closeAmendForm()
+      await this.$store.dispatch('REFRESH_USER')
+    },
+    onAmendDialogToggle () {
+      console.log('onAmendDialogToggle', this.showAmendDialog)
+      if (!this.showAmendDialog) {
+        this.closeAmendForm()
+      }
     }
   },
   watch: {
@@ -311,8 +328,9 @@ export default {
       this.date = `${this.month}-01`
     },
     amendType () {
+      if (this.editMode) return
       if (this.amendType) {
-        let amendType = this.referentials.find(amend => amend.type === this.amendType)
+        let amendType = this.referentials.amends.find(amend => amend.type === this.amendType)
         this.amendValue = amendType.fee
       } else {
         this.amendValue = null
