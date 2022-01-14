@@ -15,7 +15,15 @@ const routes = [
     path: '/user/:user',
     name: 'user',
     component: User
-  }
+  },
+  {
+    path: '/planning-des-repas',
+    name: 'mealPlanning',
+    component: () => import(
+        /* webpackChunkName: "meal" */
+        '../views/mealPlanning')
+  },
+
 ]
 
 const router = new VueRouter({

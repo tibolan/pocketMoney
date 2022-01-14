@@ -1,8 +1,8 @@
 <template>
-  <main :class="loading ? 'loading' : ''">
+  <v-container :class="loading ? 'loading' : ''">
     <!--    <h1><span>{{ name }}</span> <input type="month" v-model="date" max="2022-01" min="2021-12"></h1>-->
     <div style="text-align: center; margin: 10px 0">
-      <input type="month" v-model="month" min="2022-01" :max="month">
+      <input type="month" v-model="month" min="2021-12" :max="month">
     </div>
     <v-sheet height="auto" v-if="currentUser">
       <v-calendar
@@ -18,119 +18,117 @@
           @change="getEvents"
       ></v-calendar>
 
-      <v-dialog
-          v-model="showCurrentDayDetails"
-          max-width="500px"
-      >
-        <v-card>
-          <v-card-title>
-            Détail du {{ this.currentDayFormated }}
-          </v-card-title>
-          <v-card-text>
-            <v-list
-                two-line
-            >
-
-              <template v-if="currentDayAmends.length">
-                <v-list-item
-                    v-for="amend in currentDayAmends"
-                    :key="amend._id"
-                >
-                  <v-list-item-content>
-                    <v-list-item-title>{{ getReasonLabelByType(amend.type) }} : {{ toCurrency(amend.fee / 100) }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle v-if="amend.comment">{{ amend.comment }}</v-list-item-subtitle>
-                  </v-list-item-content>
-
-                  <v-list-item-action v-if="parentMode">
-                    <v-flex>
-                      <v-btn icon @click="openAmendForm(amend)">
-                        <v-icon color="grey lighten-1">mdi-pencil</v-icon>
-                      </v-btn>
-                      <v-btn icon @click="deleteAmend(amend)">
-                        <v-icon color="grey lighten-1">mdi-delete</v-icon>
-                      </v-btn>
-                    </v-flex>
-                  </v-list-item-action>
-                </v-list-item>
-              </template>
-              <template v-else>
-                <v-list-item>
-                  <v-list-item-content>
-                    <v-list-item-title>Pas de sanction ce jour, bravo !</v-list-item-title>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-            </v-list>
-          </v-card-text>
-          <v-card-actions>
-            <template v-if="parentMode">
-              <v-btn outlined @click="showCurrentDayDetails = false">
-                Fermer
-              </v-btn>
-              <v-spacer></v-spacer>
-              <v-btn dark color="black" @click="openAmendForm()" v-if="parentMode">Ajouter</v-btn>
-            </template>
-            <template v-else>
-              <v-spacer></v-spacer>
-              <v-btn outlined @click="showCurrentDayDetails = false">Fermer</v-btn>
-              <v-spacer></v-spacer>
-            </template>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
 
 
-      <v-dialog v-model="showAmendDialog" @input="onAmendDialogToggle">
-        <v-card>
-          <v-card-title v-if="!editMode">Ajouter une amende</v-card-title>
-          <v-card-title v-else>Modifier une amende</v-card-title>
-          <v-card-text>
-            <v-select
-                :items="amendsType"
-                label="Catégorie"
-                outlined
-                v-model="amendType"
-            ></v-select>
-            <v-text-field outlined v-model="amendComment" label="Motif de l'amende"></v-text-field>
-            <v-text-field outlined type="number" min="10" label="Montant en centimes" step="10"
-                          v-model="amendValue"></v-text-field>
-          </v-card-text>
-          <v-card-actions class="align-center">
-            <v-spacer></v-spacer>
-            <template v-if="editMode">
-              <template v-if="amendType && amendValue">
-                <v-btn color="black" dark @click="editAmend">Modifier</v-btn>
-              </template>
-              <template v-else>
-                <v-btn disabled>Modifier</v-btn>
-              </template>
-            </template>
-            <template v-else>
-              <template v-if="amendType && amendValue">
-                <v-btn color="black" dark @click="addAmend">Ajouter</v-btn>
-              </template>
-              <template v-else>
-                <v-btn disabled>Ajouter</v-btn>
-              </template>
-            </template>
-            <v-spacer></v-spacer>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-
+      <div class="d-flex justify-center py-10">
+        <span>Montant gagné ce mois:</span>
+        <strong class="pl-2">{{toCurrency(monthTotal)}}</strong>
+      </div>
     </v-sheet>
 
 
-    <!--    <amend-grid :amends="currentAmends" :date="date"></amend-grid>-->
-  </main>
+    <drawer v-model="showCurrentDayDetails" class="pa-5">
+      <v-list
+          two-line
+          class="mx-auto"
+          max-width="400px">
+
+        <template v-if="currentDayAmends.length">
+          <v-list-item
+              v-for="amend in currentDayAmends"
+              :key="amend._id"
+              class="px-5"
+          >
+            <v-list-item-content>
+              <v-list-item-title>{{ getReasonLabelByType(amend.type) }} : {{ toCurrency(amend.fee / 100) }}
+              </v-list-item-title>
+              <v-list-item-subtitle v-if="amend.comment">{{ amend.comment }}</v-list-item-subtitle>
+            </v-list-item-content>
+
+            <v-list-item-action v-if="parentMode">
+              <v-flex>
+                <v-btn icon @click="openAmendForm(amend)">
+                  <v-icon color="grey lighten-1">mdi-pencil</v-icon>
+                </v-btn>
+                <v-btn icon @click="deleteAmend(amend)">
+                  <v-icon color="grey lighten-1">mdi-delete</v-icon>
+                </v-btn>
+              </v-flex>
+            </v-list-item-action>
+          </v-list-item>
+        </template>
+        <template v-else>
+          <v-list-item>
+            <v-list-item-content>
+              <v-list-item-title class="text-center">Pas de sanction ce jour, bravo ! 👍👍👍</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </template>
+
+        <v-list-item v-if="parentMode" class="px-5" :dense="true" tile two-line>
+          <v-list-item-content>
+            <v-list-item-action>
+              <v-spacer></v-spacer>
+              <v-btn icon dark color="black" @click="openAmendForm()" v-if="parentMode">
+                <v-icon color="grey lighten-1">mdi-plus</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item-content>
+        </v-list-item>
+
+      </v-list>
+
+      <div class="d-flex">
+        <template >
+
+        </template>
+      </div>
+    </drawer>
+    <drawer v-model="showAmendDialog" @input="onAmendDialogToggle">
+      <v-card>
+        <v-card-title v-if="!editMode">Ajouter une amende</v-card-title>
+        <v-card-title v-else>Modifier une amende</v-card-title>
+        <v-card-text>
+          <v-select
+              :items="amendsType"
+              label="Catégorie"
+              outlined
+              v-model="amendType"
+          ></v-select>
+          <v-text-field outlined v-model="amendComment" label="Motif de l'amende"></v-text-field>
+          <v-text-field outlined type="number" min="10" label="Montant en centimes" step="10"
+                        v-model="amendValue"></v-text-field>
+        </v-card-text>
+        <v-card-actions class="align-center">
+          <v-spacer></v-spacer>
+          <template v-if="editMode">
+            <template v-if="amendType && amendValue">
+              <v-btn color="black" dark @click="editAmend">Modifier</v-btn>
+            </template>
+            <template v-else>
+              <v-btn disabled>Modifier</v-btn>
+            </template>
+          </template>
+          <template v-else>
+            <template v-if="amendType && amendValue">
+              <v-btn color="black" dark @click="addAmend">Ajouter</v-btn>
+            </template>
+            <template v-else>
+              <v-btn disabled>Ajouter</v-btn>
+            </template>
+          </template>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </drawer>
+  </v-container>
 </template>
 
 <script>
 
 import {mapState} from "vuex";
 import dayjs from '../components/DateFR'
+import Drawer from "../components/Drawer";
 import HSL2RGB from "../components/HSL2RGB";
 import toCurrency from "../components/toCurrency";
 
@@ -138,6 +136,7 @@ const today = dayjs()
 
 export default {
   name: "User",
+  components: {Drawer},
   data () {
     return {
       user: null,
@@ -215,6 +214,9 @@ export default {
           fee: item.fee
         }
       })
+    },
+    monthTotal () {
+      return this.currentEvents.reduce((previousValue, item) => previousValue + item.total, 0)
     }
   },
   methods: {
@@ -233,9 +235,9 @@ export default {
       this.showCurrentDayDetails = true
     },
     getEventColor (event) {
-      let total = Math.max(event.total * 100, 0)
-      if (total === 100) return "white"
-      let color = HSL2RGB(Math.floor(total * 123 / 100), 100, 50)
+      let total = event.total * 100
+      if (total === this.referentials.parameters.rewardByDay) return HSL2RGB(123, 100, 80)
+      let color = HSL2RGB((63  + total), 100, 80)
       return color
     },
     getEvents (oDate) {
@@ -244,9 +246,14 @@ export default {
     getAmendsTotalByDate (date) {
       let amends = this.getAmendsByDate(date)
       let total = amends.reduce((acc, amend) => {
-        return acc + Number(amend.fee)
+        return acc - Number(amend.fee)
       }, 0)
-      return (100 - total) / 100
+
+      if (total < 0) {
+        return total / 100
+      } else {
+        return this.referentials.parameters.rewardByDay / 100
+      }
     },
     getAmendsByDate (date) {
       return this.currentUser.amends.filter(amend => amend.date === date)
@@ -257,6 +264,7 @@ export default {
         return false
       }
       let total = this.getAmendsTotalByDate(amend.date)
+      console.log(total)
       return Object.assign({}, amend, {
         name: toCurrency(this.getAmendsTotalByDate(amend.date)),
         total,
