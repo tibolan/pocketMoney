@@ -1,45 +1,57 @@
 <template>
 
-  <v-container class="fill-height justify-start align-start" tag="section">
-    <v-simple-table dense class="planning">
-      <template v-slot:default>
-        <caption>Planning des repas</caption>
-        <thead>
-        <tr>
-          <th></th>
-          <th scope="col">Lu</th>
-          <th scope="col">Ma</th>
-          <th scope="col">Me</th>
-          <th scope="col">Je</th>
-          <th scope="col">Ve</th>
-          <th scope="col">Sa</th>
-          <th scope="col">Di</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <th scope="row">Z</th>
-          <td></td>
-          <td class="diner sm1"></td>
-          <td class="diner"></td>
-          <td></td>
-          <td class="diner"></td>
-          <td class="diner"></td>
-          <td class="meal"></td>
-        </tr>
-        <tr>
-          <th scope="row">S</th>
-          <td class="diner"></td>
-          <td></td>
-          <td class="meal"></td>
-          <td class="diner"></td>
-          <td></td>
-          <td class="meal"></td>
-          <td class="diner"></td>
-        </tr>
-        </tbody>
-      </template>
-    </v-simple-table>
+  <v-container>
+    <v-flex >
+      <v-simple-table dense class="planning">
+        <template v-slot:default>
+          <caption>Planning des repas</caption>
+          <thead>
+          <tr>
+            <th></th>
+            <th scope="col">Midi</th>
+            <th scope="col">Soir</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <th scope="row">Lundi</th>
+            <td></td>
+            <td class="sousou">Swann</td>
+          </tr>
+          <tr>
+            <th scope="row">Mardi</th>
+            <td></td>
+            <td class="zad">Zadig</td>
+          </tr>
+          <tr>
+            <th scope="row">Mercredi</th>
+            <td class="sousou">Swann</td>
+            <td class="zad">Zadig</td>
+          </tr>
+          <tr>
+            <th scope="row">Jeudi</th>
+            <td></td>
+            <td class="sousou">Swann</td>
+          </tr>
+          <tr>
+            <th scope="row">Vendredi</th>
+            <td></td>
+            <td class="zad">Zadig</td>
+          </tr>
+          <tr>
+            <th scope="row">Samedi</th>
+            <td class="sousou">Swann</td>
+            <td class="zad">Zadig</td>
+          </tr>
+          <tr>
+            <th scope="row">Dimanche</th>
+            <td class="zad">Zadig</td>
+            <td class="sousou">Swann</td>
+          </tr>
+          </tbody>
+        </template>
+      </v-simple-table>
+    </v-flex>
   </v-container>
 </template>
 
@@ -62,24 +74,36 @@ export default {
 <style lang="scss">
 .planning {
   width: 100%;
+  border-collapse: collapse;
+  caption-side: top;
+
+  caption {
+    font-size: 1.3rem;
+    padding-bottom: 0.75em;
+  };
+
+  th {
+    font-weight: bold !important;
+    font-size: .9em !important;
+  }
+
   th, td {
     padding: 2px !important;
     text-align: center !important;
+    // border: 1px solid rgba(0,0,0,.3);
+    // border-left: none;
+    text-transform: lowercase;
+  }
+
+  th:first-of-type {
+    // border-left: 1px solid rgba(0,0,0,.3);
   }
 }
 
-.diner {
-  background-color: rgba(0,0,0,.2);
-
-  &:after {
-    content: 'S'
-  }
+.zad {
+  background-color: rgba(0,0,0,.05);
 }
-.meal {
+.sousou {
   background-color: rgba(0,0,0,.1);
-
-  &:after {
-    content: 'M'
-  }
 }
 </style>

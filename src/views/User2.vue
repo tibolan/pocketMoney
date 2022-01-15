@@ -69,7 +69,7 @@
           <v-list-item-content>
             <v-list-item-action>
               <v-spacer></v-spacer>
-              <v-btn icon dark color="black" @click="openAmendForm()" v-if="parentMode">
+              <v-btn icon @click="openAmendForm()" v-if="parentMode" class="pa-0">
                 <v-icon color="grey lighten-1">mdi-plus</v-icon>
               </v-btn>
             </v-list-item-action>
@@ -250,7 +250,7 @@ export default {
       }, 0)
 
       if (total < 0) {
-        return total / 100
+        return total / 100 + (this.referentials.parameters.rewardByDay / 200)
       } else {
         return this.referentials.parameters.rewardByDay / 100
       }

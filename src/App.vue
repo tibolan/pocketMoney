@@ -3,8 +3,8 @@
 
     <v-app-bar
         color="white"
-        elevate-on-scroll
-        scroll-target="#scrolling-techniques-7"
+        height="60"
+        app
     >
       <v-menu offset-y>
         <template v-slot:activator="{ on, attrs }">
@@ -20,6 +20,14 @@
           </v-btn>
         </template>
         <v-list>
+          <v-list-item>
+            <v-list-item-title>
+              <v-btn
+                  plain
+                  :to="{name: 'home'}"
+              >Home</v-btn>
+            </v-list-item-title>
+          </v-list-item>
           <v-list-item>
             <v-list-item-title>
               <v-btn
@@ -52,13 +60,10 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn :to="{name: 'home'}" link plain>
+      <v-btn :to="{name: 'home'}" plain small class="pa-0">
         <v-img
             alt="Vuetify Logo"
-            class="shrink mr-2"
-            contain
             src="/logo.png"
-            transition="scale-transition"
             width="40"
         />
       </v-btn>
