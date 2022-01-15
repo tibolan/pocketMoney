@@ -2,8 +2,9 @@
   <v-app>
 
     <v-app-bar
-        color="white"
         height="60"
+        dark
+        color="red lighten-5"
         app
     >
       <v-menu offset-y>
@@ -16,7 +17,7 @@
               outlined
               :color="`${parentMode ? 'red' : 'green'}`"
           >
-            <v-app-bar-nav-icon  @xxx-click="menuOpen = !menuOpen"></v-app-bar-nav-icon>
+            <v-app-bar-nav-icon color="black"  @xxx-click="menuOpen = !menuOpen"></v-app-bar-nav-icon>
           </v-btn>
         </template>
         <v-list>
@@ -56,7 +57,7 @@
         </v-list>
       </v-menu>
 
-      <v-toolbar-title class="pl-5">{{$route.params.user ? $route.params.user : "PocketMoney"}}</v-toolbar-title>
+      <v-toolbar-title class="title pl-5 black--text" @click="toggleKid">{{$route.params.user ? $route.params.user : "PocketMoney"}}</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
@@ -169,6 +170,21 @@ export default {
     },
     async removeParentMode () {
       await this.$store.commit('SET_PARENT_MODE', false)
+    },
+
+    toggleKid () {
+      if (!this.$route.params.user) {
+        return
+      }
+
+      this.$router.push({
+        name: 'user',
+        params: {
+          user: this.$route.params.user === "zadig" ? "swann" : "zadig"
+        }
+      })
+
+
     }
   }
 };
@@ -194,5 +210,8 @@ root {
   &.open {
     transform: translateX(0%);
   }
+}
+.title {
+  text-transform: capitalize;
 }
 </style>
