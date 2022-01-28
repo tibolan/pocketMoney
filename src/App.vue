@@ -63,7 +63,6 @@
 
       <v-btn :to="{name: 'home'}" plain small class="pa-0">
         <v-img
-            alt="Vuetify Logo"
             src="/logo.png"
             width="40"
         />

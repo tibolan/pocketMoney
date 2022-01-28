@@ -19,10 +19,18 @@
       ></v-calendar>
 
 
-
-      <div class="d-flex justify-center py-10">
-        <span>Montant gagné ce mois:</span>
-        <strong class="pl-2">{{toCurrency(monthTotal)}}</strong>
+      <div class="py-10">
+        <p>
+          <span>Montant gagné ce mois:</span>
+          <strong class="pl-2">{{ toCurrency(monthTotal) }}</strong>
+        </p>
+        <p>
+          <span>Montant versé:</span>
+          <strong class="pl-2">{{ toCurrency(depositTotal) }}</strong>
+        </p>
+      </div>
+      <div class="d-flex justify-center py-10" v-if="parentMode">
+        <v-btn class="btn" @click="showDepositDialog = true">Faire un dépot</v-btn>
       </div>
     </v-sheet>
 
@@ -79,7 +87,7 @@
       </v-list>
 
       <div class="d-flex">
-        <template >
+        <template>
 
         </template>
       </div>
@@ -121,6 +129,43 @@
         </v-card-actions>
       </v-card>
     </drawer>
+    <drawer v-model="showDepositDialog" @input="onDepositDialogToggle">
+      <v-card>
+        <v-card-title v-if="!editMode">Ajouter un dépôt</v-card-title>
+        <v-card-title v-else>Modifier un dépôt</v-card-title>
+        <v-card-text>
+          <pre>{{ depositType }} // {{ depositValue }}</pre>
+          <v-select
+              :items="depositsType"
+              label="Type de versement"
+              outlined
+              v-model="depositType"
+          ></v-select>
+          <v-text-field outlined type="number" min="10" label="Montant en centimes" step="10"
+                        v-model="depositValue"></v-text-field>
+        </v-card-text>
+        <v-card-actions class="align-center">
+          <v-spacer></v-spacer>
+          <template v-if="editMode">
+            <template v-if="depositType && depositValue">
+              <v-btn color="black" dark @click="editDeposit">Modifier</v-btn>
+            </template>
+            <template v-else>
+              <v-btn disabled>Modifier</v-btn>
+            </template>
+          </template>
+          <template v-else>
+            <template v-if="depositsType && depositValue">
+              <v-btn color="black" dark @click="addDeposit">Ajouter</v-btn>
+            </template>
+            <template v-else>
+              <v-btn disabled>Ajouter</v-btn>
+            </template>
+          </template>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </drawer>
   </v-container>
 </template>
 
@@ -144,15 +189,19 @@ export default {
       currentDay: null,
       showCurrentDayDetails: false,
       showAmendDialog: false,
+      showDepositDialog: false,
       feeType: null,
       loading: false,
       code: null,
       month: today.format("YYYY-MM"),
       events: [],
       amendType: null,
+      depositType: null,
       amendComment: "",
       amendValue: null,
+      depositValue: null,
       amendId: null,
+      depositId: null,
       editMode: false
     }
   },
@@ -215,19 +264,30 @@ export default {
         }
       })
     },
+    depositsType () {
+      if (!this.referentials) return []
+      return this.referentials.deposits.map((item) => {
+        return {
+          text: item.label,
+          value: item.type
+        }
+      })
+    },
     monthTotal () {
       return this.currentEvents.reduce((previousValue, item) => previousValue + item.total, 0)
+    },
+    depositTotal () {
+      return this.currentUser.deposits.reduce((previousValue, item) => previousValue + (item.amount / 100), 0)
     }
   },
   methods: {
     toCurrency,
     getReasonLabelByType (type) {
-      let R = this.referentials.amends.find(reason => reason.type === type)
+      let R = this.referentials.amends.find(reason => reason.kind === type)
       return R.label
     },
     showDayDetails (e) {
       let day = e.event ? e.day : e
-      console.log(day)
       if (day.future) {
         return false
       }
@@ -237,7 +297,7 @@ export default {
     getEventColor (event) {
       let total = event.total * 100
       if (total === this.referentials.parameters.rewardByDay) return HSL2RGB(123, 100, 80)
-      let color = HSL2RGB((63  + total), 100, 80)
+      let color = HSL2RGB((63 + total), 100, 80)
       return color
     },
     getEvents (oDate) {
@@ -245,18 +305,21 @@ export default {
     },
     getAmendsTotalByDate (date) {
       let amends = this.getAmendsByDate(date)
+      let reward = (this.referentials.parameters.rewardByDay || 100) / 100
       let total = amends.reduce((acc, amend) => {
         return acc - Number(amend.fee)
       }, 0)
 
       if (total < 0) {
-        return total / 100 + (this.referentials.parameters.rewardByDay / 200)
+        return total / 100 + (reward / 2)
       } else {
-        return this.referentials.parameters.rewardByDay / 100
+        return reward
       }
     },
     getAmendsByDate (date) {
-      return this.currentUser.amends.filter(amend => amend.date === date)
+      return this.currentUser.amends.filter(amend => {
+        return dayjs(amend.date).isSame(dayjs(date), 'day')
+      })
     },
     createEvent (amend) {
       let d = dayjs(amend.date)
@@ -264,7 +327,6 @@ export default {
         return false
       }
       let total = this.getAmendsTotalByDate(amend.date)
-      console.log(total)
       return Object.assign({}, amend, {
         name: toCurrency(this.getAmendsTotalByDate(amend.date)),
         total,
@@ -276,7 +338,7 @@ export default {
     },
     async openAmendForm (amend) {
       if (amend) {
-        this.amendType = amend.type
+        this.amendType = amend.kind
         this.amendComment = amend.comment
         this.amendValue = amend.fee
         this.amendId = amend._id
@@ -294,33 +356,57 @@ export default {
     },
     async addAmend () {
       await this.$store.dispatch('CREATE_AMEND', {
-        type: this.amendType,
-        date: this.currentDay,
+        kind: this.amendType,
+        date: dayjs(this.currentDay).valueOf(),
         comment: this.amendComment,
         fee: this.amendValue
       })
       this.closeAmendForm()
-      await this.$store.dispatch('REFRESH_USER')
+      await this.$store.dispatch('GET_USER')
 
     },
     async deleteAmend (amend) {
       await this.$store.dispatch('DELETE_AMEND', amend._id)
-      await this.$store.dispatch('REFRESH_USER')
+      await this.$store.dispatch('GET_USER')
     },
     async editAmend () {
       await this.$store.dispatch('UPDATE_AMEND', {
         comment: this.amendComment,
         fee: this.amendValue,
+        type: this.amendType,
         _id: this.amendId
       })
       this.closeAmendForm()
-      await this.$store.dispatch('REFRESH_USER')
+      await this.$store.dispatch('GET_USER')
     },
+    async addDeposit () {
+      await this.$store.dispatch('CREATE_DEPOSIT', {
+        kind: this.depositType,
+        date: dayjs().valueOf(),
+        amount: this.depositValue
+      })
+      this.closeAmendForm()
+      await this.$store.dispatch('GET_USER')
+    },
+    async editDeposit () {},
+    async deleteDeposit () {},
     onAmendDialogToggle () {
-      console.log('onAmendDialogToggle', this.showAmendDialog)
       if (!this.showAmendDialog) {
         this.closeAmendForm()
       }
+    },
+    onDepositDialogToggle () {
+      if (!this.showDepositDialog) {
+        this.closeAmendForm()
+      }
+    },
+    async getFilterAmends () {
+      let amends = await this.$store.dispatch('GET_AMEND', {
+        fee: {
+          $gte: 31
+        }
+      })
+      return amends
     }
   },
   watch: {
